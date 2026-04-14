@@ -1,0 +1,31 @@
+# Docker Compose for Sage Windows Container
+#
+# USAGE:
+#   docker-compose up -d          # Start container
+#   docker-compose down          # Stop and remove
+#   docker-compose exec sage powershell  # Interactive shell
+#
+# IMPORTANT: Copy your Sage installer to this directory as "sage_installer.exe"
+#            before building, OR use the --build flag
+
+services:
+  sage:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        - SAGA_INSTALLER=${SAGA_INSTALLER:-PLACEHOLDER}
+        - SAGETARGET=${SAGETARGET:-sage-300}
+    container_name: sage
+    hostname: sage-${SAGETARGET:-container}
+    stdin_open: true
+    tty: true
+    # volumes:
+    #   - ./data:/app/data  # Uncomment to persist data
+    # ports:
+    #   - "8080:8080"       # Uncomment if app exposes ports
+    restart: unless-stopped
+    # environment:
+    #   - SAGE_LICENSE=${SAGE_LICENSE}
+    #   - SAGEDB_HOST=${SAGEDB_HOST}
+    #   - SAGEDB_NAME=${SAGEDB_NAME}

@@ -1,0 +1,19 @@
+# Sage installer - should never be committed
+*.exe
+*.msi
+
+# Docker artifacts
+*.tar
+*.tar.gz
+
+# Data
+data/
+*.log
+
+# IDE
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db
