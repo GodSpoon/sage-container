@@ -1,67 +1,62 @@
-# Windows Container with Sage - Placeholder for installer
+# Windows Container with Sage
 #
-# BUILD OPTIONS:
-#
-# Option 1: Place installer in build context
-#   COPY SageInstaller.exe . && docker build -t sage-container:v1 .
-#
-# Option 2: Use build arg (installer must be in build context)
+# BUILD:
 #   docker build -t sage-container:v1 --build-arg SAGA_INSTALLER=SageInstaller.exe .
 #
-# Option 3: Interactive (for testing)
-#   docker build -t sage-container:v1 .
-#   docker run -it sage-container:v1 powershell
+# Or with docker-compose:
+#   docker-compose build
+#   docker-compose up -d
 
 FROM mcr.microsoft.com/windows/servercore:ltsc2022
 
-ARG SAGETARGET=sage-300
-ARG SAGA_INSTALLER=PLACEHOLDER
+# Build arg: path to Sage installer in build context (e.g., SageInstaller.exe)
+ARG SAGA_INSTALLER
 
-# Copy installer if provided
+# Install prerequisites (expand as needed for your Sage version)
+RUN powershell -Command "Set-ExecutionPolicy Bypass -Scope Process -Force"
+
+# Copy Sage installer into container (if provided at build time)
 RUN powershell -Command \
-    "if ('%SAGA_INSTALLER%' -ne 'PLACEHOLDER') { \
+    "if ('%SAGA_INSTALLER%' -ne '' -and '%SAGA_INSTALLER%' -ne 'PLACEHOLDER') { \
+        Write-Host 'Copying installer: %SAGA_INSTALLER%'; \
         Copy-Item '%SAGA_INSTALLER%' C:\temp\sage_installer.exe -Force \
     }"
 
-# ---------------------------------------------------------------
-# Sage Installation Commands (UNCOMMENT AND CONFIGURE YOUR VERSION)
-# ---------------------------------------------------------------
+# ----------------------------------------------------------------------
+# UNCOMMENT YOUR SAGE PRODUCT BELOW
+# ----------------------------------------------------------------------
 
-# SAGE 300 - Typical silent install
+# SAGE 300 - Silent install
 # RUN powershell -Command \
 #     "if (Test-Path 'C:\temp\sage_installer.exe') { \
 #         Start-Process -Wait -FilePath 'C:\temp\sage_installer.exe' -ArgumentList '/s /v/qn /norestart'; \
 #     }"
 
-# SAGE 50 (Peachtree) - Typical silent install
+# SAGE 50 (Peachtree) - Silent install
 # RUN powershell -Command \
 #     "if (Test-Path 'C:\temp\sage_installer.exe') { \
 #         Start-Process -Wait -FilePath 'C:\temp\sage_installer.exe' -ArgumentList '/s /v/qn'; \
 #     }"
 
-# SAGE 100 - Typical silent install
+# SAGE 100 - Silent install
 # RUN powershell -Command \
 #     "if (Test-Path 'C:\temp\sage_installer.exe') { \
 #         Start-Process -Wait -FilePath 'C:\temp\sage_installer.exe' -ArgumentList 'ADDLOCAL=ALL /s /v/qn'; \
 #     }"
 
-# SAGE 300 - MSI example
-# RUN powershell -Command \
-#     "if (Test-Path 'C:\temp\sage_installer.msi') { \
-#         Start-Process -Wait -FilePath 'msiexec.exe' -ArgumentList '/i C:\temp\sage_installer.msi /qn'; \
-#     }"
-
-# GENERIC --placeholder message (remove when adding real install)
+# GENERIC: Just validate installer exists (remove in production)
 RUN powershell -Command \
     "if (Test-Path 'C:\temp\sage_installer.exe') { \
-        Write-Host 'Sage installer found - UNCOMMENT INSTALL COMMAND IN DOCKERFILE'; \
+        Write-Host 'Sage installer present - uncomment install command in Dockerfile'; \
+        Write-Host 'Installer: ' + (Get-Item 'C:\temp\sage_installer.exe').Name; \
     } else { \
-        Write-Host 'PLACEHOLDER IMAGE - Sage installer not provided'; \
+        Write-Host 'WARNING: No Sage installer provided. Container built as placeholder.'; \
     }"
 
-# Clean up installer
+# Clean up
 RUN powershell -Command \
     "if (Test-Path 'C:\temp\sage_installer.exe') { Remove-Item 'C:\temp\sage_installer.exe' -Force }"
 
-# Default startup
-CMD ["powershell", "Write-Host 'Sage Container (%SAGETARGET%) ready'"]
+EXPOSE 8080
+
+CMD ["powershell", "Write-Host 'Sage container ready'"]
